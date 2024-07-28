@@ -1,0 +1,60 @@
+
+name: Tag Increment (patch)
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - version-14
+      - version-15
+      - main
+  workflow_dispatch:
+
+jobs:
+  increment_tag:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Fetch all tags
+      run: git fetch --tags
+
+    - name: Compute new tag
+      id: set_tag
+      run: |
+        # Initial setup for default version
+        default_major=1
+        default_minor=0
+        default_patch=0
+        
+        # Get the latest tag if it exists
+        latest_tag=$(git tag --sort=-v:refname | head -n 1)
+        echo "Latest tag: $latest_tag"
+        
+        # If no tags are found, use default version
+        if [ -z "$latest_tag" ]; then
+          latest_tag="v$default_major.$default_minor.$default_patch"
+        fi
+
+        # Parse the latest tag
+        IFS='.' read -ra VERSION <<< "${latest_tag//v/}"
+        major="${VERSION[0]}"
+        minor="${VERSION[1]}"
+        patch="${VERSION[2]}"
+
+        # Increment the patch version
+        patch=$((patch+1))
+        new_tag="v$major.$minor.$patch"
+
+        # Echo the new tag
+        echo "New tag: $new_tag"
+        echo "::set-output name=new_tag::$new_tag"
+
+    - name: Push new tag
+      run: |
+        new_tag="${{ steps.set_tag.outputs.new_tag }}"
+        git tag $new_tag
+        git push origin $new_tag
+    
