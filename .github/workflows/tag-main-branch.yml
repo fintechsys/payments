@@ -8,11 +8,12 @@ on:
       - version-14
       - version-15
       - main
+      - develop
   workflow_dispatch:
 
 jobs:
   increment_tag:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
     - name: Checkout code
