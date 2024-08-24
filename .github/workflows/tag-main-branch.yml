@@ -1,19 +1,18 @@
 
+
 name: Tag Increment (patch)
 
 on:
   pull_request:
     types: [closed]
     branches:
-      - version-14
       - version-15
       - main
-      - develop
   workflow_dispatch:
 
 jobs:
   increment_tag:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
     - name: Checkout code
@@ -58,4 +57,7 @@ jobs:
         new_tag="${{ steps.set_tag.outputs.new_tag }}"
         git tag $new_tag
         git push origin $new_tag
-    
+
+
+
+
